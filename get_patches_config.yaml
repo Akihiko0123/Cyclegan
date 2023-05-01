@@ -1,0 +1,24 @@
+path:
+    base_path: "./" # ベースフォルダパス
+    input_name: "input"                       # 入力フォルダ名
+    output_name: "img_patches"                # 出力フォルダ名
+    txt_path: "./white_area.txt" # パッチ情報の出力先ファイルパス
+    
+## cycleGAN用にドメインAとBで分ける
+## 最初のアンダーバーまでの接頭辞の違いで分ける
+## (例：undyed_TMA_liver => undyed, HE_TMA_liver => HE)
+data:
+    A_pref: "undyed"                          # Aに振り分けるファイル名の接頭辞(リスト可)
+    B_pref: "HE"                              # Bに振り分けるファイル名の接頭辞(リスト可)
+    ## train用フォルダに出力するかtest用フォルダに出力するか、ファイル名の接尾部で分ける
+    train_suf: "kidney"                       # 学習用データに振り分けるファイル名の接尾辞(リスト可)
+    test_suf: "liver"                         # テスト用データに振り分けるファイル名の接尾辞(リスト可)
+    sep: "_"                                  # ファイル名の接尾部(拡張子ではない)や接頭辞を分けるセパレータ記号
+
+cut:
+    x_csize: 256                              # 切り取るサイズ(幅)
+    y_csize: 256                              # 切り取るサイズ(高さ)
+
+background:
+    w_th: 0.7                                  # 白ピクセル(背景)の割合が設定値未満のパッチのみを保存
+    use_white_area: True                      # 背景除去を行うかどうか
