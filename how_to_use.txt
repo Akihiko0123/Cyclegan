@@ -1,0 +1,91 @@
+[概要]
+
+CycleGANを使って、AフォルダとBフォルダ内の画像の特徴を互いの画像に適用するプログラムです。サイズの大きなjpg画像をパッチに切り分けて学習・テストさせます。
+テスト時には、最終的に1枚の画像に戻るように貼り合わせます。
+
+以下3つのプログラムから成ります。
+① CycleGANで学習・テストを行うために、1枚のJPGファイルを指定したサイズのパッチに切り分けて各フォルダに振り分けるプログラム(get_patches_from_jpg.py)
+② ①のプログラムで指定した学習用フォルダ[/*/train]に入ったパッチ画像を
+   CycleGANで学習するプログラム(cycle_gan_train.py)
+③ ②で学習したモデルを用いてテストを実施するプログラム(cycle_gan_test.py)
+
+[使用方法]
+
+次の順で実行します。
+
+・python get_patches_from_jpg.py (--config_file コンフィグファイル名)
+
+事前に設定ファイルで、ベースのフォルダパスや、
+入力画像[.jpg]が置いてあるフォルダ名などを設定します。
+デフォルトの設定ファイル名は[get_patches_config.yaml]です。
+設定ファイル名を変更した場合は、プログラムの実行時に引数「--config_file」に
+新しい設定ファイル名を指定することで使用することができます。
+実行後は、『output_name』で指定したフォルダ内にA,Bのフォルダが作成され、それぞれの画像パッチが保存されます。
+
+・python cycle_gan_train.py
+
+設定ファイルはなく、「cycle_gan_train.py」内のOpts()クラス__init__メソッドの
+各変数に設定値を入力します。
+学習用画像が入ったフォルダ(train)の、親フォルダ(img_patches等)のパス等を指定します。
+出力したモデルファイル(.pth)は、プログラムを実行したディレクトリに作成される「output」フォルダ内に保存されます。
+
+・python cycle_gan_test.py
+
+設定ファイルはなく、「cycle_gan_test.py」内のOpts_test()クラス__init__メソッドの
+各変数に設定値を入力します。
+それぞれ指定したフォルダからモデルファイル(.pth)や画像パッチを読み込みます。
+出力パッチ画像は実行したディレクトリに作成されている「output」フォルダ内の“A”フォルダと”B”フォルダに保存されます。
+cycle_gan_test.pyの中にパッチを貼り合わせて、元の1枚画像形式で出力する
+スクリプトが組み込まれています。
+1枚に貼り合わせた画像も出力パッチ画像と同じAフォルダとBフォルダに保存されます。
+この画像は接頭辞が『cyclegan』となっています。
+
+なお、このプログラムでは、バッチサイズが１ということと、
+パッチ画像ファイルの名称が以下の形式になっていることが前提になります。
+
+入力パッチ画像のファイル名の例：
+undyed_TMA_kidney_patch_10x11.png
+ルール１：ファイル名(undyed_TMA_kidney_patch)と位置情報を表す部分(10x10)が
+アンダーバー(“_”)で区切られて『ファイル名_位置情報.png』になっている。
+ルール２：位置情報のx番目(10)とy番目(11)が”x”で区切られている。
+※	通常get_patches_from_jpg.pyで作成したパッチ画像は
+この形式で出力されるため、問題ないと思われます。
+
+cycle_gan_train.py設定項目の例：
+class Opts():
+    def __init__(self):
+        self.start_epoch = 0
+        self.n_epochs = 80 # 23.5.13_1 エポック数
+        self.batch_size = 1
+        self.dataroot = './img_patches'　# 入力パッチ画像が入ったフォルダ(./img_patches/train/AやBの中にパッチが入っている)
+        self.lr = 0.0002 # 学習率
+        self.decay_epoch = 40 # 23.5.13_1学習率減衰が始まるエポック(0.0002からスタートし、40epoch~n_epochsの間に学習率が0となる)
+        self.size = 256   # サイズ
+        self.input_nc = 3 # 入力チャンネル
+        self.output_nc = 3# 出力チャンネル
+        self.cpu = False
+        self.n_cpu = 8
+        self.device_name = "cuda:0"
+        self.device = torch.device(self.device_name)
+        self.load_weight = False
+
+cycle_gan_test.py設定項目の例：
+class Opts_test():
+    def __init__(self):
+        self.size_AX = 11928 # 未染色画像の幅(パッチに切り分ける前の画像サイズ)
+        self.size_AY = 10368 # 未染色画像の高さ
+        self.size_BX = 11648 # HE染色画像の幅
+        self.size_BY = 10152 # HE染色画像の高さ
+        self.batch_size = 1  # バッチサイズは1に固定する
+        self.dataroot = './img_patches' # 画像が置いてあるディレクトリ(この中にAとBのフォルダがあり、それぞれの元画像が置いてある)
+        self.size = 256 # パッチのサイズ
+        self.input_nc = 3 # 入力チャンネル数
+        self.output_nc = 3# 出力チャンネル数
+        self.cpu = False 
+        self.n_cpu = 8    # cpu数
+        self.device_name = "cuda:0" # device_name
+        self.device = torch.device(self.device_name)
+        self.load_weight = False
+        self.generator_A2B = './output/netG_A2B.pth'   # AからBへ変換するモデルのパス
+        self.generator_B2A = './output/netG_B2A.pth'   # BからAへ変換するモデルのパス
+        self.cuda = True

@@ -45,14 +45,16 @@ writer = SummaryWriter(log_dir=log_dir)
 class Opts():
     def __init__(self):
         self.start_epoch = 0
-        self.n_epochs = 5
+#        self.n_epochs = 5 # 23.5.13_2 エポック数
+        self.n_epochs = 80 # 23.5.13_1 エポック数
         self.batch_size = 1
-        self.dataroot = './img_patches'
-        self.lr = 0.0002
-        self.decay_epoch = 200
-        self.size = 256
-        self.input_nc = 3
-        self.output_nc = 3
+        self.dataroot = './img_patches'　# 入力パッチ画像が入ったフォルダ(./img_patches/train/AやBの中にパッチが入っている)
+        self.lr = 0.0002 # 学習率
+        self.decay_epoch = 40 # 23.5.13_1学習率減衰が始まるエポック(0.0002からスタートし、40epoch~n_epochsの間に学習率が0となる)
+#        self.decay_epoch = 3 # 23.5.13_2
+        self.size = 256   # サイズ
+        self.input_nc = 3 # 入力チャンネル
+        self.output_nc = 3# 出力チャンネル
 #        self.cpu = True
         self.cpu = False
         self.n_cpu = 8
